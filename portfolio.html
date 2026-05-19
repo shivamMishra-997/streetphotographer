@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URBAN FRAME — Street Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ed;
+    --grey-dark: #1a1a1a;
+    --grey-mid: #555;
+    --grey-light: #aaa;
+    --accent: #c8b89a;
+    --grain-opacity: 0.04;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── Custom Cursor ─────────────────────────── */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--white);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(245,242,237,0.5);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s cubic-bezier(.18,.89,.32,1.28);
+  }
+  .cursor.active { transform: scale(2.5); }
+  .cursor-ring.active { transform: translate(-50%, -50%) scale(1.5); border-color: var(--accent); }
+
+  /* ─── Grain Overlay ─────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity);
+    pointer-events: none;
+    z-index: 9000;
+    animation: grain 0.8s steps(1) infinite;
+  }
+  @keyframes grain {
+    0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,2%)}50%{transform:translate(-1%,4%)}70%{transform:translate(4%,-1%)}90%{transform:translate(-3%,1%)}
+  }
+
+  /* ─── Navigation ────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 3rem;
+    mix-blend-mode: difference;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.25em;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; width: 0; height: 1px;
+    background: var(--white);
+    transition: width 0.35s ease;
+  }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ─── HERO ──────────────────────────────────── */
+  #home {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 5rem 3rem 4rem;
+    position: relative; z-index: 2;
+  }
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 1s 0.3s forwards;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 9vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: 0.03em;
+    color: var(--white);
+    opacity: 0;
+    animation: fadeUp 1s 0.5s forwards;
+  }
+  .hero-title span {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--white);
+  }
+  .hero-desc {
+    margin-top: 2rem;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--grey-light);
+    max-width: 340px;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeUp 1s 0.7s forwards;
+  }
+  .hero-cta {
+    margin-top: 2.5rem;
+    display: inline-flex; align-items: center; gap: 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--white);
+    padding: 0.9rem 2rem;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s, transform 0.3s;
+    opacity: 0;
+    animation: fadeUp 1s 0.9s forwards;
+  }
+  .hero-cta:hover { background: var(--accent); transform: translateX(6px); }
+  .hero-cta::after { content: '→'; font-size: 0.8rem; }
+
+  .hero-right {
+    position: relative; overflow: hidden;
+  }
+  .hero-image-wrap {
+    position: absolute; inset: 0;
+    clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
+    overflow: hidden;
+  }
+  .hero-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.1);
+    transform: scale(1.05);
+    animation: heroZoom 8s ease-in-out infinite alternate;
+  }
+  @keyframes heroZoom { from { transform: scale(1.05); } to { transform: scale(1.12); } }
+
+  /* Placeholder hero image via SVG */
+  .hero-img-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #333 40%, #111 70%, #2a2a2a 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-img-placeholder::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 4px);
+  }
+  .silhouette {
+    width: 55%;
+    opacity: 0.7;
+    animation: heroZoom 8s ease-in-out infinite alternate;
+  }
+
+  .hero-counter {
+    position: absolute; bottom: 2.5rem; right: 3rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: var(--grey-light);
+    writing-mode: vertical-rl;
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 1s 1.2s forwards;
+  }
+
+  .scroll-line {
+    position: absolute; bottom: 0; left: 50%;
+    width: 1px; height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--white));
+    animation: scrollPulse 2s ease-in-out infinite;
+    z-index: 2;
+  }
+  @keyframes scrollPulse { 0%,100%{opacity:0;transform:scaleY(0.5) translateX(-50%)}50%{opacity:1;transform:scaleY(1) translateX(-50%)} }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── SECTION STYLES ────────────────────────── */
+  section { position: relative; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-label::before {
+    content: '';
+    display: inline-block; width: 40px; height: 1px;
+    background: var(--grey-light);
+  }
+
+  /* ─── ABOUT ─────────────────────────────────── */
+  #about {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--black);
+  }
+
+  .about-visual {
+    position: relative; overflow: hidden;
+  }
+  .about-img-wrap {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 3px;
+    padding: 3px;
+  }
+  .about-tile {
+    overflow: hidden;
+    position: relative;
+  }
+  .about-tile-bg {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.15);
+    transition: transform 0.6s ease;
+  }
+  .about-tile:hover .about-tile-bg { transform: scale(1.08); }
+  .about-tile-placeholder {
+    width: 100%; height: 100%;
+    background: var(--grey-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .about-tile-placeholder::after {
+    content: attr(data-n);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: rgba(255,255,255,0.04);
+  }
+  .tile-1 { background: linear-gradient(135deg, #222 0%, #111 100%); }
+  .tile-2 { background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); }
+  .tile-3 { background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); }
+  .tile-4 { background: linear-gradient(135deg, #111 0%, #2a2a2a 100%); }
+
+  .about-content {
+    padding: 6rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .about-quote {
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-style: italic;
+    line-height: 1.35;
+    color: var(--white);
+    margin: 2rem 0;
+    position: relative;
+  }
+  .about-quote::before {
+    content: '"';
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10rem;
+    color: rgba(255,255,255,0.05);
+    position: absolute; top: -3rem; left: -1.5rem;
+    line-height: 1;
+  }
+  .about-text {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: var(--grey-light);
+    max-width: 440px;
+    margin-bottom: 2.5rem;
+  }
+  .about-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-top: 2.5rem;
+  }
+  .stat {
+    padding: 1.5rem;
+    background: var(--black);
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    display: block;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+    margin-top: 0.25rem;
+  }
+
+  /* ─── GALLERY ───────────────────────────────── */
+  #gallery {
+    padding: 7rem 3rem;
+    background: var(--grey-dark);
+  }
+  .gallery-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 3rem;
+  }
+  .gallery-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 6vw, 7rem);
+    line-height: 1;
+    letter-spacing: 0.05em;
+  }
+  .gallery-filter {
+    display: flex; gap: 1rem;
+  }
+  .filter-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--grey-light);
+    padding: 0.5rem 1rem;
+    cursor: none;
+    transition: all 0.3s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--white);
+    color: var(--white);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: auto;
+    gap: 4px;
+  }
+
+  .photo-item {
+    overflow: hidden;
+    position: relative;
+    cursor: none;
+  }
+  .photo-item:nth-child(1)  { grid-column: span 5; grid-row: span 2; aspect-ratio: 3/4; }
+  .photo-item:nth-child(2)  { grid-column: span 4; aspect-ratio: 4/3; }
+  .photo-item:nth-child(3)  { grid-column: span 3; aspect-ratio: 1/1; }
+  .photo-item:nth-child(4)  { grid-column: span 4; aspect-ratio: 4/3; }
+  .photo-item:nth-child(5)  { grid-column: span 3; aspect-ratio: 1/1; }
+  .photo-item:nth-child(6)  { grid-column: span 4; aspect-ratio: 4/3; }
+  .photo-item:nth-child(7)  { grid-column: span 5; aspect-ratio: 5/3; }
+  .photo-item:nth-child(8)  { grid-column: span 3; aspect-ratio: 3/4; }
+
+  .photo-bg {
+    width: 100%; height: 100%;
+    filter: grayscale(100%) contrast(1.1);
+    transition: transform 0.7s cubic-bezier(.25,.46,.45,.94), filter 0.5s;
+  }
+  .photo-item:hover .photo-bg {
+    transform: scale(1.06);
+    filter: grayscale(80%) contrast(1.15);
+  }
+
+  .photo-placeholder {
+    width: 100%; height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Realistic photo placeholders with patterns */
+  .p1 { background: linear-gradient(170deg, #0a0a0a 0%, #2a2a2a 30%, #111 60%, #333 100%); }
+  .p2 { background: linear-gradient(30deg, #1a1a1a 0%, #3a3a3a 50%, #111 100%); }
+  .p3 { background: linear-gradient(90deg, #111 0%, #222 100%); }
+  .p4 { background: linear-gradient(200deg, #2a2a2a 0%, #111 60%, #333 100%); }
+  .p5 { background: linear-gradient(45deg, #0a0a0a 0%, #2a2a2a 100%); }
+  .p6 { background: linear-gradient(120deg, #1a1a1a 0%, #333 100%); }
+  .p7 { background: linear-gradient(60deg, #111 0%, #2a2a2a 50%, #0a0a0a 100%); }
+  .p8 { background: linear-gradient(220deg, #2a2a2a 0%, #0a0a0a 100%); }
+
+  .photo-placeholder::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px),
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px);
+  }
+
+  .photo-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1.5rem;
+  }
+  .photo-item:hover .photo-overlay { opacity: 1; }
+  .photo-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--white);
+    margin-bottom: 0.3rem;
+  }
+  .photo-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+  }
+
+  /* Photo icons/labels */
+  .photo-icon {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 6rem);
+    color: rgba(255,255,255,0.04);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ─── CONTACT ───────────────────────────────── */
+  #contact {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--black);
+  }
+
+  .contact-left {
+    padding: 7rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .contact-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 6vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: 0.03em;
+    margin: 1.5rem 0 2rem;
+  }
+  .contact-title em {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+    font-style: normal;
+  }
+  .contact-info {
+    margin-top: 3rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+  .contact-line {
+    display: flex; align-items: flex-start; gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .contact-line-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+    min-width: 80px;
+    padding-top: 0.2rem;
+  }
+  .contact-line-value {
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--white);
+  }
+
+  .contact-right {
+    padding: 7rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  .form-group {
+    position: relative;
+    margin-bottom: 2.5rem;
+  }
+  .form-input, .form-textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding: 0.75rem 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.3s;
+    cursor: none;
+  }
+  .form-input:focus, .form-textarea:focus {
+    border-bottom-color: var(--white);
+  }
+  .form-textarea {
+    resize: none;
+    height: 100px;
+  }
+  .form-label {
+    position: absolute; top: 0.75rem; left: 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--grey-light);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .form-input:focus ~ .form-label,
+  .form-input:not(:placeholder-shown) ~ .form-label,
+  .form-textarea:focus ~ .form-label,
+  .form-textarea:not(:placeholder-shown) ~ .form-label {
+    top: -1rem; font-size: 0.45rem; color: var(--accent);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: transparent; }
+
+  .form-line {
+    position: absolute; bottom: 0; left: 0;
+    height: 1px; width: 0;
+    background: var(--white);
+    transition: width 0.4s ease;
+  }
+  .form-input:focus ~ .form-line,
+  .form-textarea:focus ~ .form-line { width: 100%; }
+
+  .submit-btn {
+    display: inline-flex; align-items: center; gap: 1rem;
+    background: var(--white);
+    color: var(--black);
+    border: none;
+    padding: 1rem 2.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.3s, transform 0.3s;
+    margin-top: 1rem;
+  }
+  .submit-btn:hover {
+    background: var(--accent);
+    transform: translateX(8px);
+  }
+  .submit-btn .btn-arrow { font-size: 0.9rem; }
+
+  /* ─── FOOTER ────────────────────────────────── */
+  footer {
+    background: var(--grey-dark);
+    padding: 2rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.3em;
+    color: var(--white);
+  }
+  .footer-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--grey-light);
+  }
+  .social-links {
+    display: flex; gap: 1.5rem; list-style: none;
+  }
+  .social-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--grey-light);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .social-links a:hover { color: var(--white); }
+
+  /* ─── Scroll-reveal ─────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── Lightbox ──────────────────────────────── */
+  .lightbox {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 5000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .lightbox.open { opacity: 1; pointer-events: all; }
+  .lightbox-inner {
+    max-width: 80vw; max-height: 80vh;
+    position: relative;
+  }
+  .lightbox-close {
+    position: absolute; top: -2.5rem; right: 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--grey-light);
+    background: none; border: none;
+    cursor: none;
+    transition: color 0.3s;
+  }
+  .lightbox-close:hover { color: var(--white); }
+  .lightbox-placeholder {
+    width: 70vw; height: 70vh;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .lightbox-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: rgba(255,255,255,0.08);
+    letter-spacing: 0.3em;
+  }
+
+  /* ─── Horizontal rule / divider ─────────────── */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.12), transparent);
+  }
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" id="lightboxClose">CLOSE ✕</button>
+    <div class="lightbox-placeholder" id="lightboxContent">
+      <span class="lightbox-text" id="lightboxLabel">URBAN FRAME</span>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <a href="#home" class="nav-logo">URBAN FRAME</a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section id="home">
+  <div class="hero-left">
+    <span class="hero-eyebrow">01 / Portfolio 2024</span>
+    <h1 class="hero-title">
+      STREET
+      <span>VISION</span>
+    </h1>
+    <p class="hero-desc">
+      Chasing shadows and light across the urban labyrinth — every frame a stolen moment, every face a silent story.
+    </p>
+    <a href="#gallery" class="hero-cta">View Gallery</a>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-image-wrap">
+      <div class="hero-img-placeholder">
+        <!-- Stylized street photography SVG silhouette -->
+        <svg class="silhouette" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Building silhouettes -->
+          <rect x="0" y="200" width="60" height="400" fill="rgba(255,255,255,0.06)"/>
+          <rect x="50" y="150" width="50" height="450" fill="rgba(255,255,255,0.04)"/>
+          <rect x="280" y="180" width="60" height="420" fill="rgba(255,255,255,0.05)"/>
+          <rect x="330" y="120" width="70" height="480" fill="rgba(255,255,255,0.04)"/>
+          <!-- Windows -->
+          <rect x="10" y="210" width="8" height="10" fill="rgba(255,255,255,0.15)"/>
+          <rect x="25" y="210" width="8" height="10" fill="rgba(255,255,255,0.08)"/>
+          <rect x="10" y="230" width="8" height="10" fill="rgba(255,255,255,0.12)"/>
+          <rect x="25" y="230" width="8" height="10" fill="rgba(255,255,255,0.18)"/>
+          <rect x="290" y="195" width="8" height="10" fill="rgba(255,255,255,0.14)"/>
+          <rect x="305" y="195" width="8" height="10" fill="rgba(255,255,255,0.09)"/>
+          <!-- Street -->
+          <rect x="0" y="520" width="400" height="80" fill="rgba(255,255,255,0.03)"/>
+          <!-- Perspective lines -->
+          <line x1="200" y1="520" x2="0" y2="600" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="200" y1="520" x2="400" y2="600" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <!-- Figure silhouette -->
+          <ellipse cx="200" cy="450" rx="18" ry="22" fill="rgba(255,255,255,0.3)"/>
+          <rect x="186" y="470" width="28" height="50" rx="4" fill="rgba(255,255,255,0.25)"/>
+          <!-- Camera -->
+          <rect x="196" y="460" width="22" height="14" rx="2" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="207" cy="467" r="5" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <!-- Shadow -->
+          <ellipse cx="200" cy="522" rx="30" ry="5" fill="rgba(0,0,0,0.5)"/>
+          <!-- Rain / atmosphere lines -->
+          <line x1="50" y1="0" x2="45" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+          <line x1="100" y1="0" x2="95" y2="150" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+          <line x1="160" y1="0" x2="155" y2="200" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+          <line x1="250" y1="0" x2="245" y2="180" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+          <line x1="310" y1="0" x2="305" y2="130" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+          <line x1="370" y1="0" x2="365" y2="160" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <span class="hero-counter">ALEX RAVEN — PHOTOGRAPHER — EST. 2015</span>
+  <div class="scroll-line"></div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════ ABOUT ══════════ -->
+<section id="about">
+  <div class="about-visual">
+    <div class="about-img-wrap">
+      <div class="about-tile">
+        <div class="about-tile-placeholder tile-1" data-n="I">
+          <svg viewBox="0 0 200 200" width="100%" height="100%" style="position:absolute;inset:0">
+            <circle cx="100" cy="80" r="35" fill="rgba(255,255,255,0.04)"/>
+            <rect x="70" y="115" width="60" height="85" rx="5" fill="rgba(255,255,255,0.04)"/>
+            <rect x="60" y="105" width="80" height="10" rx="3" fill="rgba(255,255,255,0.06)"/>
+            <line x1="0" y1="200" x2="200" y2="200" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="about-tile">
+        <div class="about-tile-placeholder tile-2" data-n="II">
+          <svg viewBox="0 0 200 200" width="100%" height="100%" style="position:absolute;inset:0">
+            <rect x="20" y="30" width="160" height="140" rx="2" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <rect x="30" y="40" width="140" height="120" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            <circle cx="100" cy="100" r="5" fill="rgba(255,255,255,0.15)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="about-tile">
+        <div class="about-tile-placeholder tile-3" data-n="III">
+          <svg viewBox="0 0 200 200" width="100%" height="100%" style="position:absolute;inset:0">
+            <line x1="0" y1="0" x2="200" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="200" y1="0" x2="0" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <rect x="60" y="60" width="80" height="80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            <rect x="80" y="80" width="40" height="40" fill="rgba(255,255,255,0.04)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="about-tile">
+        <div class="about-tile-placeholder tile-4" data-n="IV">
+          <svg viewBox="0 0 200 200" width="100%" height="100%" style="position:absolute;inset:0">
+            <path d="M0,200 Q50,100 100,120 Q150,140 200,60" stroke="rgba(255,255,255,0.08)" stroke-width="1" fill="none"/>
+            <path d="M0,180 Q50,80 100,100 Q150,120 200,40" stroke="rgba(255,255,255,0.05)" stroke-width="1" fill="none"/>
+            <circle cx="60" cy="130" r="20" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-content">
+    <div class="section-label reveal">About the Photographer</div>
+    <blockquote class="about-quote reveal">
+      The street is my darkroom — shadows are my chemicals, light is my developer.
+    </blockquote>
+    <p class="about-text reveal">
+      Alex Raven is a documentary street photographer based between New York and Tokyo. With over a decade spent navigating urban margins, Alex captures the raw, unguarded pulse of city life — the fleeting glances, lonely corridors, and electric crowds that define our collective urban experience.
+    </p>
+    <p class="about-text reveal">
+      Shooting exclusively in black and white, the work strips away colour's distraction to reveal pure form, texture, and emotion. Each photograph is a negotiation between anonymity and intimacy, absence and presence.
+    </p>
+    <div class="about-stats reveal">
+      <div class="stat">
+        <span class="stat-num">14+</span>
+        <span class="stat-label">Years Active</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">38</span>
+        <span class="stat-label">Countries</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">12</span>
+        <span class="stat-label">Exhibitions</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════ GALLERY ══════════ -->
+<section id="gallery">
+  <div class="gallery-header reveal">
+    <div>
+      <div class="section-label" style="margin-bottom:1rem">03 / Selected Work</div>
+      <h2 class="gallery-title">THE<br>ARCHIVE</h2>
+    </div>
+    <div class="gallery-filter">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="city">City</button>
+      <button class="filter-btn" data-filter="portrait">Portrait</button>
+      <button class="filter-btn" data-filter="night">Night</button>
+    </div>
+  </div>
+
+  <div class="gallery-grid" id="galleryGrid">
+
+    <!-- Photo 1 -->
+    <div class="photo-item" data-category="city" data-title="Rush Hour, Tokyo" data-meta="Tokyo, 2023 — f/8 · 1/250s · ISO 400">
+      <div class="photo-placeholder p1">
+        <div class="photo-icon">RUSH</div>
+        <svg viewBox="0 0 300 400" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Crowd silhouettes -->
+          <rect x="0" y="350" width="300" height="50" fill="rgba(255,255,255,0.04)"/>
+          <ellipse cx="80" cy="310" rx="14" ry="18" fill="rgba(255,255,255,0.12)"/>
+          <rect x="67" y="326" width="26" height="42" fill="rgba(255,255,255,0.1)"/>
+          <ellipse cx="130" cy="315" rx="13" ry="17" fill="rgba(255,255,255,0.09)"/>
+          <rect x="118" y="330" width="24" height="38" fill="rgba(255,255,255,0.08)"/>
+          <ellipse cx="175" cy="308" rx="15" ry="19" fill="rgba(255,255,255,0.14)"/>
+          <rect x="161" y="325" width="28" height="44" fill="rgba(255,255,255,0.12)"/>
+          <ellipse cx="230" cy="320" rx="12" ry="16" fill="rgba(255,255,255,0.08)"/>
+          <rect x="219" y="334" width="22" height="36" fill="rgba(255,255,255,0.07)"/>
+          <!-- Motion lines -->
+          <line x1="0" y1="180" x2="300" y2="185" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+          <line x1="0" y1="200" x2="300" y2="210" stroke="rgba(255,255,255,0.03)" stroke-width="1.5"/>
+          <!-- Light shaft -->
+          <polygon points="120,0 180,0 220,350 80,350" fill="rgba(255,255,255,0.02)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Rush Hour, Tokyo</p>
+        <p class="photo-meta">Tokyo, 2023 — f/8</p>
+      </div>
+    </div>
+
+    <!-- Photo 2 -->
+    <div class="photo-item" data-category="portrait" data-title="The Vendor" data-meta="Mumbai, 2022 — f/5.6 · 1/500s · ISO 200">
+      <div class="photo-placeholder p2">
+        <div class="photo-icon">SOUL</div>
+        <svg viewBox="0 0 300 225" width="100%" height="100%" style="position:absolute;inset:0">
+          <ellipse cx="150" cy="90" rx="50" ry="60" fill="rgba(255,255,255,0.06)"/>
+          <rect x="110" y="148" width="80" height="77" rx="5" fill="rgba(255,255,255,0.05)"/>
+          <line x1="0" y1="225" x2="300" y2="225" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          <!-- Dramatic shadow -->
+          <ellipse cx="150" cy="222" rx="60" ry="6" fill="rgba(0,0,0,0.6)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">The Vendor</p>
+        <p class="photo-meta">Mumbai, 2022 — f/5.6</p>
+      </div>
+    </div>
+
+    <!-- Photo 3 -->
+    <div class="photo-item" data-category="night" data-title="Neon Reflection" data-meta="NYC, 2023 — f/2 · 1/60s · ISO 3200">
+      <div class="photo-placeholder p3">
+        <div class="photo-icon">NEON</div>
+        <svg viewBox="0 0 225 225" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Puddle reflection -->
+          <ellipse cx="112" cy="180" rx="80" ry="30" fill="rgba(255,255,255,0.04)"/>
+          <line x1="50" y1="120" x2="50" y2="180" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+          <line x1="80" y1="100" x2="80" y2="180" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <line x1="140" y1="110" x2="140" y2="180" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+          <line x1="175" y1="90" x2="175" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Neon Reflection</p>
+        <p class="photo-meta">NYC, 2023 — f/2</p>
+      </div>
+    </div>
+
+    <!-- Photo 4 -->
+    <div class="photo-item" data-category="city" data-title="Underpass" data-meta="London, 2022 — f/11 · 1/125s · ISO 800">
+      <div class="photo-placeholder p4">
+        <div class="photo-icon">ARCH</div>
+        <svg viewBox="0 0 300 225" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Tunnel arch -->
+          <path d="M20,225 L20,100 Q150,20 280,100 L280,225 Z" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          <path d="M50,225 L50,115 Q150,50 250,115 L250,225 Z" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <!-- Light at end -->
+          <circle cx="150" cy="120" r="25" fill="rgba(255,255,255,0.08)"/>
+          <circle cx="150" cy="120" r="12" fill="rgba(255,255,255,0.12)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Underpass</p>
+        <p class="photo-meta">London, 2022 — f/11</p>
+      </div>
+    </div>
+
+    <!-- Photo 5 -->
+    <div class="photo-item" data-category="portrait" data-title="Eyes of the City" data-meta="Paris, 2021 — f/4 · 1/250s · ISO 400">
+      <div class="photo-placeholder p5">
+        <div class="photo-icon">GAZE</div>
+        <svg viewBox="0 0 225 225" width="100%" height="100%" style="position:absolute;inset:0">
+          <ellipse cx="112" cy="95" rx="45" ry="55" fill="rgba(255,255,255,0.06)"/>
+          <!-- Eyes close-up suggestion -->
+          <ellipse cx="85" cy="85" rx="22" ry="14" fill="rgba(255,255,255,0.08)"/>
+          <ellipse cx="140" cy="85" rx="22" ry="14" fill="rgba(255,255,255,0.08)"/>
+          <circle cx="85" cy="85" r="8" fill="rgba(0,0,0,0.6)"/>
+          <circle cx="140" cy="85" r="8" fill="rgba(0,0,0,0.6)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Eyes of the City</p>
+        <p class="photo-meta">Paris, 2021 — f/4</p>
+      </div>
+    </div>
+
+    <!-- Photo 6 -->
+    <div class="photo-item" data-category="night" data-title="Last Train" data-meta="Osaka, 2023 — f/2.8 · 1/30s · ISO 6400">
+      <div class="photo-placeholder p6">
+        <div class="photo-icon">MOTION</div>
+        <svg viewBox="0 0 300 225" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Train blur -->
+          <rect x="0" y="80" width="300" height="65" fill="rgba(255,255,255,0.04)"/>
+          <rect x="0" y="90" width="280" height="10" fill="rgba(255,255,255,0.08)"/>
+          <rect x="20" y="105" width="250" height="8" fill="rgba(255,255,255,0.05)"/>
+          <!-- Window lights blurred -->
+          <rect x="10" y="88" width="30" height="14" fill="rgba(255,255,255,0.18)" rx="1"/>
+          <rect x="55" y="88" width="30" height="14" fill="rgba(255,255,255,0.14)" rx="1"/>
+          <rect x="100" y="88" width="30" height="14" fill="rgba(255,255,255,0.2)" rx="1"/>
+          <rect x="145" y="88" width="30" height="14" fill="rgba(255,255,255,0.1)" rx="1"/>
+          <rect x="190" y="88" width="30" height="14" fill="rgba(255,255,255,0.16)" rx="1"/>
+          <rect x="235" y="88" width="30" height="14" fill="rgba(255,255,255,0.12)" rx="1"/>
+          <!-- Platform figure -->
+          <ellipse cx="280" cy="148" rx="10" ry="13" fill="rgba(255,255,255,0.2)"/>
+          <rect x="271" y="160" width="18" height="30" fill="rgba(255,255,255,0.18)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Last Train</p>
+        <p class="photo-meta">Osaka, 2023 — f/2.8</p>
+      </div>
+    </div>
+
+    <!-- Photo 7 -->
+    <div class="photo-item" data-category="city" data-title="Market Shadows" data-meta="Marrakech, 2022 — f/8 · 1/500s · ISO 200">
+      <div class="photo-placeholder p7">
+        <div class="photo-icon">SHADOWS</div>
+        <svg viewBox="0 0 500 300" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Grid shadow pattern from overhead lattice -->
+          <defs><pattern id="lattice" width="30" height="30" patternUnits="userSpaceOnUse">
+            <rect width="28" height="28" fill="rgba(255,255,255,0.015)"/>
+          </pattern></defs>
+          <rect width="500" height="300" fill="url(#lattice)"/>
+          <!-- Strong diagonal shadow -->
+          <polygon points="0,0 80,0 200,300 0,300" fill="rgba(0,0,0,0.4)"/>
+          <polygon points="200,0 280,0 400,300 320,300" fill="rgba(0,0,0,0.3)"/>
+          <!-- Figures in dappled light -->
+          <ellipse cx="140" cy="230" rx="12" ry="15" fill="rgba(255,255,255,0.18)"/>
+          <rect x="129" y="244" width="22" height="35" fill="rgba(255,255,255,0.15)"/>
+          <ellipse cx="360" cy="240" rx="11" ry="14" fill="rgba(255,255,255,0.12)"/>
+          <rect x="350" y="253" width="20" height="30" fill="rgba(255,255,255,0.1)"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">Market Shadows</p>
+        <p class="photo-meta">Marrakech, 2022 — f/8</p>
+      </div>
+    </div>
+
+    <!-- Photo 8 -->
+    <div class="photo-item" data-category="portrait" data-title="The Wait" data-meta="Havana, 2021 — f/5.6 · 1/200s · ISO 400">
+      <div class="photo-placeholder p8">
+        <div class="photo-icon">TIME</div>
+        <svg viewBox="0 0 225 300" width="100%" height="100%" style="position:absolute;inset:0">
+          <!-- Seated figure -->
+          <ellipse cx="112" cy="120" rx="30" ry="35" fill="rgba(255,255,255,0.1)"/>
+          <rect x="82" y="153" width="60" height="55" rx="4" fill="rgba(255,255,255,0.08)"/>
+          <!-- Chair suggestion -->
+          <rect x="70" y="195" width="85" height="6" fill="rgba(255,255,255,0.12)"/>
+          <rect x="70" y="200" width="6" height="40" fill="rgba(255,255,255,0.08)"/>
+          <rect x="149" y="200" width="6" height="40" fill="rgba(255,255,255,0.08)"/>
+          <!-- Wall texture -->
+          <line x1="0" y1="50" x2="225" y2="50" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="100" x2="225" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <div class="photo-overlay">
+        <p class="photo-title">The Wait</p>
+        <p class="photo-meta">Havana, 2021 — f/5.6</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════ CONTACT ══════════ -->
+<section id="contact">
+  <div class="contact-left">
+    <div class="section-label reveal">04 / Get in Touch</div>
+    <h2 class="contact-title reveal">
+      LET'S<br>CREATE<br><em>TOGETHER</em>
+    </h2>
+    <p class="about-text reveal" style="max-width:380px">
+      Available for editorial commissions, gallery exhibitions, workshops, and collaborative projects. Every project begins with a conversation.
+    </p>
+    <div class="contact-info reveal">
+      <div class="contact-line">
+        <span class="contact-line-label">Email</span>
+        <span class="contact-line-value">alex@urbanframe.com</span>
+      </div>
+      <div class="contact-line">
+        <span class="contact-line-label">Studio</span>
+        <span class="contact-line-value">Brooklyn, New York</span>
+      </div>
+      <div class="contact-line">
+        <span class="contact-line-label">Avail.</span>
+        <span class="contact-line-value">Open for 2024 projects</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-right">
+    <form class="contact-form" id="contactForm" onsubmit="handleSubmit(event)">
+      <div class="form-group reveal">
+        <input type="text" class="form-input" id="name" placeholder="Name" required>
+        <label class="form-label" for="name">Your Name</label>
+        <span class="form-line"></span>
+      </div>
+      <div class="form-group reveal">
+        <input type="email" class="form-input" id="email" placeholder="Email" required>
+        <label class="form-label" for="email">Email Address</label>
+        <span class="form-line"></span>
+      </div>
+      <div class="form-group reveal">
+        <input type="text" class="form-input" id="subject" placeholder="Subject">
+        <label class="form-label" for="subject">Subject / Project Type</label>
+        <span class="form-line"></span>
+      </div>
+      <div class="form-group reveal">
+        <textarea class="form-textarea" id="message" placeholder="Message" required></textarea>
+        <label class="form-label" for="message">Your Message</label>
+        <span class="form-line"></span>
+      </div>
+      <button type="submit" class="submit-btn reveal">
+        Send Message <span class="btn-arrow">→</span>
+      </button>
+      <p id="formMsg" style="margin-top:1rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);opacity:0;transition:opacity 0.4s;"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <span class="footer-logo">URBAN FRAME</span>
+  <ul class="social-links">
+    <li><a href="#">INSTAGRAM</a></li>
+    <li><a href="#">VSCO</a></li>
+    <li><a href="#">500PX</a></li>
+  </ul>
+  <span class="footer-copy">© 2024 ALEX RAVEN — ALL RIGHTS RESERVED</span>
+</footer>
+
+<script>
+  // ─── Custom Cursor ───────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+  });
+
+  function animateCursor() {
+    rx += (mx - rx - 18) * 0.12;
+    ry += (my - ry - 18) * 0.12;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  document.querySelectorAll('a, button, .photo-item, .filter-btn').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('active'); ring.classList.add('active'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('active'); ring.classList.remove('active'); });
+  });
+
+  // ─── Scroll Reveal ───────────────────────────
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => io.observe(r));
+
+  // ─── Gallery Filter ──────────────────────────
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const photoItems = document.querySelectorAll('.photo-item');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      photoItems.forEach(item => {
+        const cat = item.dataset.category;
+        if (f === 'all' || cat === f) {
+          item.style.opacity = '1';
+          item.style.transform = 'scale(1)';
+          item.style.pointerEvents = 'all';
+        } else {
+          item.style.opacity = '0.15';
+          item.style.transform = 'scale(0.97)';
+          item.style.pointerEvents = 'none';
+        }
+        item.style.transition = 'opacity 0.4s, transform 0.4s';
+      });
+    });
+  });
+
+  // ─── Lightbox ────────────────────────────────
+  const lightbox = document.getElementById('lightbox');
+  const lbLabel = document.getElementById('lightboxLabel');
+  const lbClose = document.getElementById('lightboxClose');
+
+  photoItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const title = item.dataset.title || 'URBAN FRAME';
+      lbLabel.textContent = title.toUpperCase();
+      lightbox.classList.add('open');
+    });
+  });
+
+  lbClose.addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+
+  // ESC key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') lightbox.classList.remove('open');
+  });
+
+  // ─── Form Submit ─────────────────────────────
+  function handleSubmit(e) {
+    e.preventDefault();
+    const msg = document.getElementById('formMsg');
+    msg.textContent = '✓ MESSAGE SENT — I\'LL BE IN TOUCH SOON.';
+    msg.style.opacity = '1';
+    e.target.reset();
+    setTimeout(() => msg.style.opacity = '0', 4000);
+  }
+
+  // ─── Nav active link on scroll ───────────────
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 200) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.opacity = a.getAttribute('href') === `#${current}` ? '1' : '0.5';
+    });
+  });
+</script>
+</body>
+</html>
